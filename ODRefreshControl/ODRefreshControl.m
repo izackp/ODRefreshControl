@@ -10,8 +10,7 @@
 
 #import "ODRefreshControl.h"
 
-#define kTotalViewHeight    400
-#define kOpenedViewHeight   50
+#define kOpenedViewWidth    50
 #define kMinTopPadding      9
 #define kMaxTopPadding      5
 #define kMinTopRadius       12.5
@@ -53,7 +52,7 @@ static inline CGFloat lerp(CGFloat a, CGFloat b, CGFloat p)
 
 - (id)initInScrollView:(UIScrollView *)scrollView activityIndicatorView:(UIView *)activity
 {
-    self = [super initWithFrame:CGRectMake(-(kOpenedViewHeight + scrollView.contentInset.left), 0, kOpenedViewHeight, scrollView.frame.size.height)];
+    self = [super initWithFrame:CGRectMake(-(kOpenedViewWidth + scrollView.contentInset.left), 0, kOpenedViewWidth, [UIApplication sharedApplication].keyWindow.height)];
     
     if (self) {
         self.scrollView = scrollView;
@@ -65,12 +64,14 @@ static inline CGFloat lerp(CGFloat a, CGFloat b, CGFloat p)
         [scrollView addObserver:self forKeyPath:@"contentInset" options:NSKeyValueObservingOptionNew context:nil];
         
         _activity = activity ? activity : [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-        _activity.center = CGPointMake(floor(self.frame.size.width / 2), floor(self.frame.size.height / 2));
+        _activity.center = CGPointMake(self.frame.size.width / 2, self.window.frame.size.height / 2);
         _activity.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
         _activity.alpha = 0;
+        
         if ([_activity respondsToSelector:@selector(startAnimating)]) {
             [(UIActivityIndicatorView *)_activity startAnimating];
         }
+        
         [self addSubview:_activity];
         
         _refreshing = NO;
@@ -182,24 +183,24 @@ static inline CGFloat lerp(CGFloat a, CGFloat b, CGFloat p)
         
         [CATransaction begin];
         [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-        _shapeLayer.position = CGPointMake(kMaxDistance + deltaOffset + kOpenedViewHeight, 0);
+        _shapeLayer.position = CGPointMake(kMaxDistance + deltaOffset + kOpenedViewWidth, 0);
         [CATransaction commit];
         
         CGFloat halfWidth = self.frame.size.width * 0.5f;
         CGFloat x1 = halfWidth + deltaOffset + self.frame.size.width;
         CGFloat x2 = halfWidth;
         
-        // within point of refresh
+        //within point of refresh
         if (deltaOffset < 0)
         {
             if (!self.scrollView.dragging) {
-                [self.scrollView setContentInset:UIEdgeInsetsMake(self.originalContentInset.top, self.originalContentInset.left + kOpenedViewHeight, self.originalContentInset.bottom, self.originalContentInset.right + 0)];
-                [self.scrollView setContentOffset:CGPointMake(-kOpenedViewHeight, self.scrollView.contentOffset.y) animated:false];
+                [self.scrollView setContentInset:UIEdgeInsetsMake(self.originalContentInset.top, self.originalContentInset.left + kOpenedViewWidth, self.originalContentInset.bottom, self.originalContentInset.right + 0)];
+                [self.scrollView setContentOffset:CGPointMake(-kOpenedViewWidth, self.scrollView.contentOffset.y) animated:false];
                 x1 = x2;
             }
         }
         
-        _activity.center = CGPointMake(MIN(x1, x2), self.frame.size.height / 2);
+        _activity.center = CGPointMake(MIN(x1, x2), self.window.frame.size.height / 2);
         
         return;
     } else {
@@ -394,7 +395,7 @@ static inline CGFloat lerp(CGFloat a, CGFloat b, CGFloat p)
     
     CGPoint offset = self.scrollView.contentOffset;
     _ignoreInset = YES;
-    [self.scrollView setContentInset:UIEdgeInsetsMake(kOpenedViewHeight + self.originalContentInset.top, self.originalContentInset.left, self.originalContentInset.bottom, self.originalContentInset.right)];
+    [self.scrollView setContentInset:UIEdgeInsetsMake(kOpenedViewWidth + self.originalContentInset.top, self.originalContentInset.left, self.originalContentInset.bottom, self.originalContentInset.right)];
     _ignoreInset = NO;
     [self.scrollView setContentOffset:offset animated:NO];
     
